@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}{{ titulo }} — Mary House{% endblock %}
+{% block crumb %}Mary House{% endblock %}
+
+{% block content %}
+<div class="card card-pad" style="max-width:520px">
+  <div class="empty-mark" style="margin:0 0 16px;background:#fdeaef;color:#c83258">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6"/></svg>
+  </div>
+  <h2 style="margin:0 0 8px">Confirmar remoção</h2>
+  <p style="color:var(--ink-soft);margin:0 0 4px">Tem certeza que deseja remover:</p>
+  <p style="font-weight:600;font-size:16px;margin:0 0 4px">{{ object }}</p>
+  <p class="help">Esta ação não pode ser desfeita.</p>
+
+  <form method="post" class="form-actions" style="border:none;margin-top:20px;padding:0">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sim, remover</button>
+    <a href="{% url list_url %}" class="btn btn-ghost">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

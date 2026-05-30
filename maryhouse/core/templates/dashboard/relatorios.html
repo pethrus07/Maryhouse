@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Relatórios — Mary House{% endblock %}
+{% block crumb %}Análise{% endblock %}
+{% block heading %}Relatórios{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'agendamento_export' %}" class="btn btn-ghost">Exportar agendamentos (CSV)</a>
+{% endblock %}
+
+{% block content %}
+<div class="grid-2b">
+  <div class="card card-pad">
+    <div class="section-head"><h2>Agendamentos por prestadora</h2></div>
+    {% if por_prestadora %}
+    <table class="report-table">
+      <thead><tr><th>Prestadora</th><th>Qtd.</th><th>Total (R$)</th></tr></thead>
+      <tbody>
+        {% for r in por_prestadora %}
+        <tr>
+          <td>{{ r.prestadora__nome }}</td>
+          <td>{{ r.n }}</td>
+          <td>{{ r.total|default:0|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<div class="empty" style="padding:30px">Sem dados ainda.</div>{% endif %}
+  </div>
+
+  <div class="card card-pad">
+    <div class="section-head"><h2>Agendamentos por serviço</h2></div>
+    {% if por_servico %}
+    <table class="report-table">
+      <thead><tr><th>Serviço</th><th>Qtd.</th><th>Total (R$)</th></tr></thead>
+      <tbody>
+        {% for r in por_servico %}
+        <tr>
+          <td>{{ r.servico__nome }}</td>
+          <td>{{ r.n }}</td>
+          <td>{{ r.total|default:0|floatformat:2 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}<div class="empty" style="padding:30px">Sem dados ainda.</div>{% endif %}
+  </div>
+</div>
+
+<div class="card card-pad" style="margin-top:18px">
+  <div class="section-head"><h2>Atividade recente</h2></div>
+  {% if logs %}
+    <div class="mini-list">
+      {% for log in logs %}
+      <div class="mini-row">
+        <span class="mini-dot" style="background:var(--rose)"></span>
+        <div class="mini-main">
+          <div class="mini-title">{{ log.get_acao_display }} {{ log.entidade }} — {{ log.descricao }}</div>
+          <div class="mini-sub">{{ log.usuario|default:"Sistema" }} · {{ log.data_hora|date:"d/m/Y H:i" }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty" style="padding:30px">Nenhuma atividade registrada ainda.</div>
+  {% endif %}
+</div>
+{% endblock %}

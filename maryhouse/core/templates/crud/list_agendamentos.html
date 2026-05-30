@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}Agendamentos — Mary House{% endblock %}
+{% block crumb %}Operação{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'agendamento_create' %}" class="btn btn-primary">
+    <svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Novo agendamento
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+  <form method="get" class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar por contratante, prestadora ou serviço…">
+    {% if status_atual %}<input type="hidden" name="status" value="{{ status_atual }}">{% endif %}
+  </form>
+  <form method="get">
+    {% if q %}<input type="hidden" name="q" value="{{ q }}">{% endif %}
+    <select name="status" class="select-min" onchange="this.form.submit()">
+      <option value="">Todos os status</option>
+      {% for val, label in status_choices %}
+        <option value="{{ val }}" {% if status_atual == val %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </form>
+  <span class="spacer"></span>
+  <a href="{% url 'agendamento_export' %}" class="btn btn-ghost btn-sm">Exportar CSV</a>
+</div>
+
+<div class="card">
+  {% if object_list %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr><th>Data / Hora</th><th>Contratante</th><th>Prestadora</th><th>Serviço</th><th>Status</th><th>Valor</th><th style="text-align:right">Ações</th></tr>
+      </thead>
+      <tbody>
+        {% for a in object_list %}
+        <tr>
+          <td><strong>{{ a.data|date:"d/m/Y" }}</strong><br><span class="mini-sub">{{ a.hora|time:"H:i" }}</span></td>
+          <td>{{ a.contratante.nome }}</td>
+          <td>{{ a.prestadora.nome }}</td>
+          <td>{{ a.servico.nome }}</td>
+          <td><span class="badge badge-{{ a.status_cor }}">{{ a.get_status_display }}</span></td>
+          <td>{% if a.valor %}R$ {{ a.valor|floatformat:2 }}{% else %}—{% endif %}</td>
+          <td>
+            <div class="row-actions">
+              <a class="icon-btn" href="{% url 'agendamento_update' a.pk %}" title="Editar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </a>
+              <a class="icon-btn danger" href="{% url 'agendamento_delete' a.pk %}" title="Remover">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
+    <p>{% if q or status_atual %}Nenhum agendamento com esses filtros.{% else %}Nenhum agendamento cadastrado ainda.{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+  <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  <div class="pages">
+    {% if page_obj.has_previous %}<a href="{% querystring page=page_obj.previous_page_number %}">‹</a>{% endif %}
+    <span class="cur">{{ page_obj.number }}</span>
+    {% if page_obj.has_next %}<a href="{% querystring page=page_obj.next_page_number %}">›</a>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

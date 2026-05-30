@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load core_extras %}
+
+{% block title %}{{ titulo }} — Mary House{% endblock %}
+{% block crumb %}Mary House{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url cadastrar_url %}" class="btn btn-primary">
+    <svg class="btn-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    Novo(a) {{ singular }}
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+  <form method="get" class="search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="text" name="q" value="{{ q }}" placeholder="Buscar {{ titulo|lower }}…">
+  </form>
+  <span class="spacer"></span>
+  {% if secao == 'contratantes' %}
+    <a href="{% url 'contratante_export' %}" class="btn btn-ghost btn-sm">Exportar CSV</a>
+  {% elif secao == 'prestadoras' %}
+    <a href="{% url 'prestadora_export' %}" class="btn btn-ghost btn-sm">Exportar CSV</a>
+  {% endif %}
+</div>
+
+<div class="card">
+  {% if object_list %}
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          {% for label, attr in colunas %}<th>{{ label }}</th>{% endfor %}
+          <th style="text-align:right">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obj in object_list %}
+        <tr>
+          {% for label, attr in colunas %}
+            <td>
+              {% coluna_classe obj attr as cls %}
+              {% if cls %}<span class="{{ cls }}">{% coluna_valor obj attr %}</span>
+              {% else %}{% coluna_valor obj attr %}{% endif %}
+            </td>
+          {% endfor %}
+          <td>
+            <div class="row-actions">
+              <a class="icon-btn" href="{% url edit_url obj.pk %}" title="Editar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </a>
+              <a class="icon-btn danger" href="{% url delete_url obj.pk %}" title="Remover">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+              </a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+    <p>{% if q %}Nada encontrado para “{{ q }}”.{% else %}Nenhum registro ainda. Que tal cadastrar o primeiro?{% endif %}</p>
+  </div>
+  {% endif %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+  <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+  <div class="pages">
+    {% if page_obj.has_previous %}<a href="{% querystring page=page_obj.previous_page_number %}">‹</a>{% endif %}
+    <span class="cur">{{ page_obj.number }}</span>
+    {% if page_obj.has_next %}<a href="{% querystring page=page_obj.next_page_number %}">›</a>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}
