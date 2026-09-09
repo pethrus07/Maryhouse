@@ -1,4 +1,10 @@
-"""Modelos de dados do Mary House."""
+"""Os cinco modelos do Mary House — a forma do negócio dentro do banco.
+
+Três cadastros (Contratante, Prestadora, Servico), o evento que amarra os três
+(Agendamento) e o histórico do que a equipe fez (LogAtividade).
+A regra que sustenta o resto: agendamento aponta para os três com PROTECT, então
+cadastro com histórico não pode ser apagado — some da tela pelo campo `ativo`.
+"""
 from django.conf import settings
 from django.db import models
 from django.urls import reverse
@@ -6,7 +12,12 @@ from django.utils import timezone
 
 
 class Base(models.Model):
-    """Campos comuns de auditoria."""
+    """Campos comuns de auditoria.
+
+    Abstrato: não vira tabela. Existe para que os quatro cadastros tenham "desde quando"
+    e "mexido pela última vez" sem repetir os dois campos quatro vezes. A LogAtividade
+    não herda daqui — ela já nasce com data_hora e nunca é editada.
+    """
 
     criado_em = models.DateTimeField("Criado em", auto_now_add=True)
     atualizado_em = models.DateTimeField("Atualizado em", auto_now=True)
@@ -92,6 +103,11 @@ class Agendamento(Base):
         CONCLUIDO = "concluido", "Concluído"
         CANCELADO = "cancelado", "Cancelado"
 
+    # PROTECT nas três chaves, e não CASCADE: apagar um contratante não pode levar junto
+    # o registro de tudo o que ele já contratou. O banco recusa a remoção; o caminho para
+    # "sumir da tela" é desmarcar o campo `ativo` do cadastro.
+    # Efeito colateral conhecido: a tela de remover devolve erro 500 nesse caso, porque a
+    # view não trata ProtectedError (ver docs/ARQUITETURA.md, seção 13).
     contratante = models.ForeignKey(
         Contratante, on_delete=models.PROTECT,
         related_name="agendamentos", verbose_name="Contratante",
@@ -129,10 +145,16 @@ class Agendamento(Base):
         return reverse("agendamento_list")
 
     def save(self, *args, **kwargs):
+        # O valor é do agendamento, não do serviço: uma vez gravado, ele congela, para que
+        # mudar o preço da tabela não reescreva o histórico. Este copiar-na-gravação é só a
+        # conveniência de deixar o campo em branco e herdar o preço de hoje.
+        # Cuidado: editar um agendamento antigo apagando o campo traz o preço ATUAL.
         if self.valor in (None, "") and self.servico_id:
             self.valor = self.servico.preco
         super().save(*args, **kwargs)
 
+    # Mora no modelo, e não no template, porque a linguagem de template não faz mapa:
+    # sem isto, cada tela que mostra status precisaria de uma escada de {% if %}.
     @property
     def status_cor(self):
         return {
@@ -151,6 +173,8 @@ class LogAtividade(models.Model):
         EDITOU = "editou", "Editou"
         REMOVEU = "removeu", "Removeu"
 
+    # SET_NULL: demitir alguém não pode apagar o rastro do que essa pessoa fez. A linha
+    # fica no histórico e a tela mostra "Sistema" no lugar do nome.
     usuario = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
         null=True, blank=True, verbose_name="Usuário",

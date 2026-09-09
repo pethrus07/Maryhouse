@@ -1,3 +1,7 @@
+{# A lista de agendamentos. Tem template próprio porque mostra dados de tabelas ligadas, #}
+{# badge colorido por status e um filtro — o que a lista genérica não sabe fazer. #}
+{# Os dois <form> GET separados repetem um do outro em campo escondido para que busca e #}
+{# filtro sobrevivam um ao outro. #}
 {% extends "base.html" %}
 {% load core_extras %}
 

@@ -1,4 +1,10 @@
-"""Formulários do Mary House."""
+"""Os quatro formulários de cadastro.
+
+São ModelForms magros de propósito: não há validação de negócio aqui, ela é a do
+modelo. O que estes formulários existem para fazer é (a) escolher quais campos vão
+para a tela e em que ordem, e (b) pendurar a classe CSS e o type="date"/"time" nos
+widgets — é o que faz o crud/form.html genérico sair estilizado sem saber de nada.
+"""
 from django import forms
 
 from .models import Agendamento, Contratante, Prestadora, Servico
@@ -64,7 +70,11 @@ class AgendamentoForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Só mostra cadastros ativos nos selects.
+        # Só mostra cadastros ativos nos selects. É o que dá sentido ao campo `ativo`:
+        # como as FKs são PROTECT e cadastro com histórico não pode ser apagado,
+        # desmarcar "ativo" é o jeito de tirá-lo de circulação sem perder o passado.
+        # Efeito a saber: ao EDITAR um agendamento antigo cujo cadastro foi desativado,
+        # o select não traz mais aquele valor.
         self.fields["contratante"].queryset = Contratante.objects.filter(ativo=True)
         self.fields["prestadora"].queryset = Prestadora.objects.filter(ativo=True)
         self.fields["servico"].queryset = Servico.objects.filter(ativo=True)

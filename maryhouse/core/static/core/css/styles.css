@@ -1,5 +1,17 @@
 /* ==========================================================================
    Mary House — tema clean (branco + rosa)
+
+   O visual inteiro do sistema, num arquivo só: não há framework, não há build e não há
+   segundo CSS. Tudo o que é cor, raio, sombra, fonte e largura da barra lateral está
+   declarado em :root logo abaixo; o resto do arquivo só consome esses tokens. Mudar a
+   identidade do sistema é mexer nas ~30 linhas de :root e em mais nada.
+
+   A exceção conhecida: as cores dos gráficos estão cravadas no <script> de
+   dashboard/dashboard.html e precisam ser trocadas à mão junto com os tokens.
+
+   Ordem das seções: tokens · shell (barra lateral + topo) · botões · cartões ·
+   indicadores · grades · tabelas · badges · toolbar · formulários · mensagens ·
+   vazio e paginação · listas auxiliares · login · responsivo.
    ========================================================================== */
 :root {
   --bg:        #fbf6f8;

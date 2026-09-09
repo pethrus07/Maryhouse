@@ -6,6 +6,9 @@ agendamentos de contratantes e prestadoras de serviço doméstico.
 Interface limpa (branco + rosa), painel com indicadores, CRUD completo,
 busca, filtros, relatórios e exportação CSV. Acesso restrito à equipe interna.
 
+> **Para entender o código sozinho, comece por [../docs/ARQUITETURA.md](../docs/ARQUITETURA.md).**
+> Este arquivo é o passo a passo de instalação; aquele é o manual do funcionamento.
+
 ---
 
 ## Stack
@@ -13,6 +16,9 @@ busca, filtros, relatórios e exportação CSV. Acesso restrito à equipe intern
 - **Python 3.10+** e **Django 5.1**
 - **PostgreSQL** (com fallback automático para SQLite em desenvolvimento)
 - HTML + CSS próprios (sem framework de frontend); gráficos com Chart.js (embutido, sem CDN)
+- Única dependência externa em tempo de execução no navegador: as fontes **Fraunces** e
+  **Plus Jakarta Sans**, carregadas do Google Fonts. Sem internet, o layout cai para fontes de
+  sistema e continua funcionando.
 
 ---
 
@@ -54,7 +60,8 @@ python manage.py seed_demo        # cria admin + dados de exemplo
 
 O comando `seed_demo` cria:
 - usuário **admin** / senha **admin123**
-- serviços, contratantes, prestadoras e ~140 agendamentos de exemplo
+- 6 serviços, 10 contratantes, 5 prestadoras e cerca de 140 agendamentos de exemplo
+  (o total é sorteado, então varia a cada banco novo)
 
 > Em produção, **não** rode `seed_demo`. Crie o usuário real com:
 > ```bash
@@ -116,7 +123,9 @@ maryhouse/
 
 - Defina `DEBUG=False`, um `SECRET_KEY` novo e `ALLOWED_HOSTS` no `.env`.
 - Rode `python manage.py collectstatic` e sirva os estáticos pelo servidor web.
+- Preencha também `CSRF_TRUSTED_ORIGINS` com `https://<seu-domínio>`, senão todo POST é recusado.
 - Use um servidor WSGI (Gunicorn/uWSGI) atrás de Nginx, e o PostgreSQL via `DATABASE_URL`.
+  O servidor WSGI **não** está no `requirements.txt` — instale-o à parte.
 
 ## Possíveis evoluções (deixadas fora do escopo atual)
 

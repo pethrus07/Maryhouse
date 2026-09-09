@@ -1,10 +1,15 @@
 """
-Configurações do projeto Mary House.
+Configurações do projeto Mary House — o único lugar onde o ambiente entra no sistema.
 
-Banco de dados: por padrão usa PostgreSQL (variável DATABASE_URL no .env).
-Se DATABASE_URL não estiver definida, cai automaticamente para um SQLite
-local (db.sqlite3) — útil para rodar e testar o sistema sem configurar
-nenhum servidor de banco.
+Tudo o que muda entre a máquina do dev e o servidor (banco, chave, DEBUG, hosts) vem de
+variável de ambiente pela função env() abaixo; o código do app nunca lê os.environ.
+
+Banco de dados: usa PostgreSQL quando DATABASE_URL está definida; sem ela, cai para um
+SQLite local (db.sqlite3). O fallback existe para que clonar o repositório e rodar não
+exija subir servidor de banco nenhum — em produção, DATABASE_URL é obrigatória na prática.
+
+ATENÇÃO: os defaults daqui (SECRET_KEY embutida, DEBUG=True, ALLOWED_HOSTS=*) são de
+conveniência de desenvolvimento e viram risco se o .env de produção não os sobrescrever.
 """
 from pathlib import Path
 import os
@@ -14,6 +19,9 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Carrega variáveis do arquivo .env (se existir e se python-dotenv estiver instalado).
+# O import fica num try porque o sistema tem de subir mesmo sem o pacote — nesse caso as
+# variáveis têm de vir do ambiente do processo. O silêncio é a armadilha: sem o dotenv,
+# o .env é ignorado sem aviso nenhum.
 try:
     from dotenv import load_dotenv
     load_dotenv(BASE_DIR / ".env")
@@ -119,6 +127,8 @@ LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
 # Mensagens -> classes CSS
+# O template imprime {{ m.tags }} direto como classe do <div class="flash ...">; este mapa é
+# o que faz "error" virar .error no styles.css em vez do "danger" que o Django usa por padrão.
 from django.contrib.messages import constants as messages  # noqa: E402
 
 MESSAGE_TAGS = {

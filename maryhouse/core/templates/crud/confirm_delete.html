@@ -1,3 +1,6 @@
+{# A confirmação de remoção. O GET só mostra a pergunta; quem remove é o POST. #}
+{# Aviso: remover cadastro que já tem agendamento é recusado pelo banco (FK PROTECT) e #}
+{# hoje isso vira erro 500 — ver docs/ARQUITETURA.md, seção 13. #}
 {% extends "base.html" %}
 
 {% block title %}{{ titulo }} — Mary House{% endblock %}

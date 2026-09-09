@@ -1,4 +1,12 @@
-"""URLs do app core."""
+"""As rotas do sistema — o índice de tudo o que existe.
+
+Vinte e três rotas em seis blocos: o painel na raiz, a autenticação, um bloco por
+entidade (lista, novo, editar, remover e, onde faz sentido, exportar) e os relatórios.
+Todos os caminhos são fixos ou com <int:pk>; não há curinga, então a ordem das linhas
+não muda o resultado.
+Os nomes (contratante_list, agendamento_update...) são contrato com os templates:
+crud/list.html recebe o nome da rota como string e resolve com a tag url.
+"""
 from django.contrib.auth import views as auth_views
 from django.urls import path
 

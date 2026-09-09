@@ -1,4 +1,15 @@
-"""Views do Mary House."""
+"""As views do Mary House — todas as telas do sistema, num arquivo só.
+
+Quatro grupos: o painel (DashboardView), as quatro listas com busca e paginação,
+o CRUD de escrita e os relatórios/exportações.
+
+A decisão que dá forma ao arquivo é a fábrica _make_views(): criar, editar e remover
+são idênticos para as quatro entidades, então em vez de doze classes há uma função que
+as gera. É o que mantém este arquivo em ~400 linhas em vez de mais de mil.
+
+Toda view usa LoginRequiredMixin: não há nada público aqui. Não há, também, controle
+por papel — quem entra pode tudo.
+"""
 import csv
 from datetime import timedelta
 
@@ -24,7 +35,13 @@ from .models import (
 # Mixins
 # ---------------------------------------------------------------------------
 class LogMixin:
-    """Registra a ação no histórico de atividades."""
+    """Registra a ação no histórico de atividades.
+
+    O log é escrito aqui, na view, e não por um signal do modelo, porque o que interessa
+    é "quem, na equipe, fez isto pela tela" — e o request é o único lugar onde o usuário
+    existe. A contrapartida: edição feita pelo /admin/ ou por script não aparece no
+    histórico.
+    """
 
     log_entidade = ""
 
@@ -38,7 +55,13 @@ class LogMixin:
 
 
 class CrudContextMixin:
-    """Injeta rótulos usados pelos templates genéricos."""
+    """Injeta rótulos usados pelos templates genéricos.
+
+    É o que permite um único crud/list.html servir três entidades: a view diz o título,
+    o singular, as colunas e as rotas; o template não sabe de qual modelo se trata.
+    Atenção: `secao` é lido daqui mas declarado só nas subclasses — view nova que herdar
+    este mixin e esquecer o `secao = "..."` quebra com AttributeError na requisição.
+    """
 
     titulo = ""
     singular = ""
@@ -97,6 +120,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         ctx["status_data"] = [por_status[s] for s, _ in Agendamento.Status.choices]
 
         # Agendamentos nos últimos 6 meses (gráfico de barras)
+        # Os meses são calculados à mão, com uma consulta por mês, em vez de um
+        # TruncMonth com GROUP BY: são seis consultas triviais, e assim o mesmo código
+        # roda igual em SQLite e em PostgreSQL, sem depender de função de data do banco.
+        # Também garante mês com zero agendamento no gráfico — um GROUP BY o omitiria.
         meses, labels, valores = [], [], []
         ref = hoje.replace(day=1)
         for i in range(5, -1, -1):
@@ -216,6 +243,9 @@ class ServicoList(LoginRequiredMixin, CrudContextMixin, ListView):
 
 
 class AgendamentoList(LoginRequiredMixin, CrudContextMixin, ListView):
+    # A única lista com template próprio: precisa de colunas vindas de tabelas ligadas,
+    # badge colorido por status e um <select> de filtro. Nada disso cabe na tag genérica
+    # coluna_valor sem transformá-la num interpretador — duplicar o template saiu barato.
     model = Agendamento
     paginate_by = 12
     template_name = "crud/list_agendamentos.html"
@@ -252,7 +282,15 @@ class AgendamentoList(LoginRequiredMixin, CrudContextMixin, ListView):
 # Create / Update / Delete (fábrica para reduzir repetição)
 # ---------------------------------------------------------------------------
 def _make_views(model, form, label, secao, list_url, create_url, update_url):
-    """Cria as classes Create/Update/Delete para uma entidade."""
+    """Cria as classes Create/Update/Delete para uma entidade.
+
+    Criar, editar e remover são a mesma coisa para as quatro entidades: mudam o modelo,
+    o formulário, o rótulo e para onde voltar. Em vez de doze classes quase idênticas,
+    uma função que as gera com esses quatro dados amarrados por fechamento.
+
+    Os parâmetros `create_url` e `update_url` não são usados por nada aqui dentro —
+    sobraram de uma versão anterior. Removê-los é seguro; ficaram por ora.
+    """
 
     class _Create(LoginRequiredMixin, LogMixin, CreateView):
         template_name = "crud/form.html"
@@ -359,6 +397,12 @@ class RelatoriosView(LoginRequiredMixin, TemplateView):
 
 
 def _csv_response(filename):
+    """Abre um CSV que o Excel em português abre certo no duplo clique.
+
+    Os dois detalhes existem pelo mesmo motivo: o BOM faz o Excel reconhecer UTF-8 (sem
+    ele, acento vira caractere estranho) e o `;` das chamadas abaixo é o separador que o
+    Excel espera em locale pt-BR — com vírgula, tudo cai numa coluna só.
+    """
     resp = HttpResponse(content_type="text/csv; charset=utf-8")
     resp["Content-Disposition"] = f'attachment; filename="{filename}"'
     resp.write("\ufeff")  # BOM para acentuação correta no Excel

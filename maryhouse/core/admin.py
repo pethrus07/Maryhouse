@@ -1,4 +1,10 @@
-"""Registro dos modelos no Django admin (gestão de bastidores)."""
+"""Os cinco modelos no Django admin — a porta dos bastidores.
+
+Existe para o que as telas do sistema não fazem: criar usuário, corrigir dado à mão,
+inspecionar o histórico. NÃO é a interface do dia a dia — essa é o site em core/views.py.
+Cuidado: o que se edita aqui não gera LogAtividade, porque o log é escrito pelo
+LogMixin das views do site.
+"""
 from django.contrib import admin
 
 from .models import Agendamento, Contratante, LogAtividade, Prestadora, Servico

@@ -1,4 +1,11 @@
-"""Filtros e tags auxiliares de template."""
+"""As três tags que fazem os templates genéricos funcionarem.
+
+coluna_valor e coluna_classe são o motor da tabela de crud/list.html: a view declara
+as colunas como pares (rótulo, atributo) e estas tags resolvem cada célula, incluindo
+os três casos que precisam de formatação (_preco, _duracao, _situacao). Sem elas,
+cada entidade precisaria do seu próprio template de lista.
+querystring existe para a paginação não perder a busca e o filtro ativos.
+"""
 from django import template
 
 register = template.Library()
@@ -29,7 +36,11 @@ def coluna_classe(obj, attr):
 
 @register.simple_tag(takes_context=True)
 def querystring(context, **kwargs):
-    """Atualiza a querystring atual preservando os demais parâmetros."""
+    """Atualiza a querystring atual preservando os demais parâmetros.
+
+    Existe porque `?page=2` cru apagaria a busca e o filtro de status que o usuário
+    acabou de aplicar. Valor vazio remove o parâmetro em vez de deixá-lo pendurado.
+    """
     request = context["request"]
     params = request.GET.copy()
     for key, value in kwargs.items():

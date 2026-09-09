@@ -1,3 +1,7 @@
+{# O painel — a primeira tela depois do login. Quatro indicadores, o gráfico de 6 meses, #}
+{# a rosca por status, a agenda de hoje e os próximos seis compromissos. #}
+{# Os dados dos gráficos entram no <script> com |safe: hoje é seguro porque todo rótulo #}
+{# é fixo no código, mas rótulo vindo do banco aqui viraria injeção — usar json_script. #}
 {% extends "base.html" %}
 {% load humanize %}
 

@@ -1,5 +1,11 @@
 """Popula o banco com dados de demonstração e cria um usuário admin.
 
+Existe para mostrar o sistema cheio: painel com gráfico, relatório com número, lista
+com paginação. Sem dado, todas as telas ficam vazias e não dá para avaliar nada.
+
+NUNCA rodar em produção: cria o superusuário admin com senha fraca escrita aqui
+mesmo. É idempotente por segurança — se já existe agendamento, sai sem tocar em nada.
+
 Uso:
     python manage.py seed_demo
 """
@@ -27,6 +33,9 @@ class Command(BaseCommand):
         else:
             self.stdout.write("Usuário 'admin' já existe.")
 
+        # A trava: um único agendamento já existente aborta tudo. É o que impede o comando
+        # de duplicar a demonstração a cada execução — e de despejar dado falso por cima de
+        # dado real, se alguém rodá-lo por engano num banco em uso.
         if Agendamento.objects.exists():
             self.stdout.write("Dados de demonstração já existem — nada a fazer.")
             return
@@ -81,6 +90,9 @@ class Command(BaseCommand):
 
         hoje = timezone.localdate()
         total = 0
+        # O passado precisa ser irregular para o gráfico de 6 meses ter alguma forma: dia
+        # sorteado fora (45%) e 1 ou 2 agendamentos nos que ficam. O total, portanto, muda
+        # a cada execução — fica na casa dos 140.
         for delta in range(-150, 15):  # ~5 meses para trás + próximos dias
             if random.random() < 0.45:
                 continue
