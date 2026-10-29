@@ -1,28 +1,31 @@
 # Arquitetura
 
-Diagramas gerados a partir do Sinapse (o segundo cérebro do Pedro). Cada projeto tem três vistas,
-cada uma numa notação padrão:
+Três vistas do sistema, cada uma numa notação padrão.
 
-1. **Quem usa e para quê**: UML, diagrama de casos de uso.
-2. **O processo principal**: BPMN 2.0, com raias por quem executa.
-3. **A arquitetura**: modelo C4, nível 2 (containers).
+| Vista | Notação | Responde |
+|---|---|---|
+| 1. Casos de uso | UML | Quem usa e para quê |
+| 2. Processo | BPMN 2.0 | Como o trabalho anda, com uma raia para cada quem executa |
+| 3. Arquitetura | C4, nível 2 | De que partes o sistema é feito e com quem conversa |
 
 ## Mary House · gestão de serviços domésticos
 
 Sistema interno em Django da agência Mary House: cadastra contratantes, prestadoras e serviços, amarra tudo num agendamento com status e mostra painel, relatórios e histórico. Encerrado em 03/09/2026; a proposta de levar para Worker não foi adiante.
 
-### Quem usa e para quê (UML)
+### 1. Quem usa e para quê
 
-![Casos de uso · Mary House · gestão de serviços domésticos](./maryhouse-1-casos-de-uso.svg)
+![Casos de uso de Mary House](./mary-house-1-casos-de-uso.svg)
 
-### Do pedido do contratante ao serviço concluído (BPMN 2.0)
+### 2. Do pedido do contratante ao serviço concluído
 
-![Processo · Mary House · gestão de serviços domésticos](./maryhouse-2-processo.svg)
+![Processo de Mary House](./mary-house-2-processo.svg)
 
-### Arquitetura (C4, containers)
+### 3. Arquitetura
 
-![Arquitetura · Mary House · gestão de serviços domésticos](./maryhouse-3-arquitetura.svg)
+![Arquitetura de Mary House](./mary-house-3-arquitetura.svg)
 
-Editável: [`maryhouse.excalidraw`](./maryhouse.excalidraw), abre em [excalidraw.com](https://excalidraw.com) ou no VS Code com a extensão Excalidraw.
+Para editar: [mary-house.excalidraw](./mary-house.excalidraw), que abre em [excalidraw.com](https://excalidraw.com) ou na extensão Excalidraw do VS Code.
 
-A fonte destes arquivos é o vault do Sinapse (`09-DESENHOS/`); alterações feitas aqui são sobrescritas na próxima publicação.
+## De onde vêm
+
+Os diagramas são gerados a partir do Sinapse, o vault onde o Pedro organiza notas e projetos. Mudança feita direto aqui some na próxima publicação: o lugar de mudar é a especificação no Sinapse.
