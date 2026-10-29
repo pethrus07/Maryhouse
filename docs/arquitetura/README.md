@@ -11,7 +11,17 @@ cada uma numa notação padrão:
 
 Sistema interno em Django da agência Mary House: cadastra contratantes, prestadoras e serviços, amarra tudo num agendamento com status e mostra painel, relatórios e histórico. Encerrado em 03/09/2026; a proposta de levar para Worker não foi adiante.
 
-![Mary House · gestão de serviços domésticos](./maryhouse.svg)
+### Quem usa e para quê (UML)
+
+![Casos de uso · Mary House · gestão de serviços domésticos](./maryhouse-1-casos-de-uso.svg)
+
+### Do pedido do contratante ao serviço concluído (BPMN 2.0)
+
+![Processo · Mary House · gestão de serviços domésticos](./maryhouse-2-processo.svg)
+
+### Arquitetura (C4, containers)
+
+![Arquitetura · Mary House · gestão de serviços domésticos](./maryhouse-3-arquitetura.svg)
 
 Editável: [`maryhouse.excalidraw`](./maryhouse.excalidraw), abre em [excalidraw.com](https://excalidraw.com) ou no VS Code com a extensão Excalidraw.
 
