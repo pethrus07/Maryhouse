@@ -1,2 +1,6 @@
 # Orcamento do cliente (precos) - fica fora do repo publico
 maryhouse-proposta/
+
+# Ambiente local
+.venv/
+__pycache__/

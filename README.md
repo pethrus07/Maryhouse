@@ -1,108 +1,67 @@
-# Mary House — Sistema de Gerenciamento
+[Português](README.pt-BR.md) | English
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
-![Django](https://img.shields.io/badge/Django-5.1-092E20?logo=django&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-com%20fallback%20SQLite-4169E1?logo=postgresql&logoColor=white)
-![Sem dependência de frontend](https://img.shields.io/badge/frontend-HTML%20%2B%20CSS%20pr%C3%B3prios-e25a7d)
-![Status](https://img.shields.io/badge/status-em%20uso-2e9e6b)
+# Scheduling system for a cleaning agency
 
-> Sistema interno de uma agência de serviços domésticos em João Pessoa. Registra contratantes,
-> prestadoras e o catálogo de serviços, e amarra os três num agendamento com data, hora, status e
-> valor. Painel, relatórios, exportação CSV e histórico de quem mexeu no quê — tudo atrás de login.
+> **Archived (2026-11).** Commercial follow-up ended in September 2026. No deploy is configured in this repository.
 
-> **Para entender o código sozinho, comece por [docs/ARQUITETURA.md](docs/ARQUITETURA.md).**
+Internal system for a small domestic cleaning agency in João Pessoa, Brazil. It records clients, service providers and the service catalog, and ties the three together in a booking with date, time, status and price. Dashboard, reports, CSV export and an activity log, all behind a login.
 
----
+## What it was
 
-## 1. Visão Geral e a Dor
+The agency's operation comes down to four questions: who asked, who goes, which day, how much. When that lives in a notebook and WhatsApp chats, the answer depends on who you ask and there is no history. This system answers the four questions in one place. It is not an ERP: no invoices, no cash control, no customer area, no public API. Only the internal team uses it.
 
-A operação de uma agência de faxina se resolve, na prática, em quatro perguntas: *quem pediu*,
-*quem vai*, *que dia* e *quanto custa*. Quando isso vive em caderno e conversa de WhatsApp, a
-resposta muda conforme quem responde — e o histórico não existe.
+It was rewritten in Django in 2026. A later proposal (new website plus moving the system to Cloudflare Workers) did not go ahead.
 
-O sistema é a resposta única para essas quatro perguntas. Ele não tenta ser um ERP: não emite
-nota, não controla caixa, não fala com o cliente final. Faz o cadastro, a agenda e a memória do
-que aconteceu, e mostra num painel o que a dona precisa olhar antes de abrir o dia.
+## Stack
 
-Quem usa é só a equipe interna. **Não há área do cliente, cadastro público nem API** — toda tela
-exige login.
+- Python 3.10+ and Django 5.1, one app (`core`).
+- PostgreSQL through `DATABASE_URL`; without it, a local SQLite file.
+- Server-rendered HTML and own CSS, no front-end framework. Chart.js vendored in the repo (no CDN).
 
----
+## Run locally
 
-## 2. Arquitetura e Decisões Técnicas
-
-| Camada | Escolha | Por quê | Alternativa | Impacto |
-|---|---|---|---|---|
-| Aplicação | Django 5.1, um único app (`core`) | O sistema é CRUD com relatório: as classes genéricas do Django cobrem 90% dele sem código | Flask/FastAPI + SQLAlchemy | O admin, a autenticação, as migrações e a paginação vêm de graça |
-| Banco | `DATABASE_URL` → PostgreSQL; sem ela, SQLite | Testar não pode exigir subir servidor de banco | Só Postgres, sempre | `git clone` + `migrate` + `runserver` roda em qualquer máquina |
-| Frontend | HTML renderizado no servidor, CSS próprio em tokens | Sem build, sem `node_modules`, sem versão de framework para envelhecer | React/Vue + API | Manutenção é editar um `.html` e um `.css`; nada compila |
-| Gráficos | Chart.js **dentro do repositório** | Painel que depende de CDN quebra quando a CDN quebra | `<script src="cdn...">` | Um arquivo de vendor no git em troca de uma dependência a menos no ar |
-| CRUD | Fábrica `_make_views()` gera Create/Update/Delete | Doze classes quase idênticas viram uma função e quatro chamadas | Escrever as doze | `views.py` cabe numa tela de rolagem; entidade nova custa uma linha |
-| Auditoria | Tabela `LogAtividade` escrita por um mixin nas views | "Quem apagou isso?" precisava ter resposta | Django `LogEntry` (só cobre o `/admin/`) | Histórico do que a equipe faz **pelo site**, visível na tela de relatórios |
-| Integridade | FKs de agendamento com `on_delete=PROTECT` | Apagar um contratante não pode levar junto o histórico dele | `CASCADE` | O banco recusa a remoção; o campo `ativo` é o caminho para "sumir da tela sem perder o passado" |
-
----
-
-## 3. Destaque de Engenharia — a tela que serve três entidades
-
-Contratantes, prestadoras e serviços usam **o mesmo template de lista e o mesmo de formulário**. A
-view diz o que a tabela mostra, não como:
-
-```python
-colunas = [("Nome", "nome"), ("Preço", "_preco"),
-           ("Duração", "_duracao"), ("Situação", "_situacao")]
-```
-
-O template percorre `colunas` e pede a cada célula à tag `coluna_valor`, que resolve o atributo
-comum e trata os três casos que precisam de formatação (`_preco`, `_duracao`, `_situacao`).
-`coluna_classe` faz o mesmo para a classe CSS, e é assim que "Ativo" vira um badge verde sem uma
-linha de `if` no HTML.
-
-O limite dessa abordagem também é explícito: agendamentos **têm** template próprio, porque
-precisam de colunas vindas de tabelas ligadas, badge por status e um filtro. Foi mais barato
-duplicar o template do que transformar a tag genérica num interpretador de expressões. O motivo
-está registrado em [docs/ARQUITETURA.md](docs/ARQUITETURA.md), seção 6.
-
----
-
-## 4. Como rodar
-
-De dentro de `maryhouse/`:
+From inside `maryhouse/`:
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate          # Linux/macOS: source .venv/bin/activate
+.venv\Scripts\activate            # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py createsuperuser
-python manage.py runserver
+python manage.py seed_demo        # demo user admin / admin123 and fictitious data
+python manage.py runserver        # http://127.0.0.1:8000
 ```
 
-Sem `.env`, o sistema sobe em SQLite e em modo de desenvolvimento. Para PostgreSQL, copie
-`.env.example` para `.env` e preencha `DATABASE_URL`. Os detalhes de variáveis, do comando de
-demonstração e das notas de produção estão em [maryhouse/README.md](maryhouse/README.md).
+Without a `.env` the system starts in development mode on SQLite. `seed_demo` creates a weak demo password and must never run in production. Environment variables are listed in `maryhouse/.env.example`.
 
-> **Deploy não está configurado neste repositório**: não há Docker, CI nem servidor WSGI nas
-> dependências. O caminho pretendido está descrito em
-> [docs/ARQUITETURA.md](docs/ARQUITETURA.md), seção 8.
+## Tests
 
----
-
-## Estrutura do Projeto
-
-```
-Maryhouse/
-├── docs/ARQUITETURA.md      o manual: fluxo, modelos, telas, receitas, armadilhas
-└── maryhouse/               o projeto Django
-    ├── config/              settings, urls raiz, wsgi
-    └── core/                o app: models, forms, views, urls, admin,
-                             templatetags, seed_demo, migrations,
-                             static/ (CSS + Chart.js) e templates/
+```bash
+cd maryhouse
+python manage.py test
 ```
 
----
+`core/tests.py` is a smoke test: the login page opens, every screen and export redirects to login when anonymous, and with the demo data every screen opens, exports come out as CSV and deleting a client writes to the activity log.
 
-## Licença
+## Folder structure
 
-Software feito sob encomenda para a Mary House. **Não há arquivo de licença neste repositório** —
-o código está público como portfólio; o uso é do cliente.
+```
+maryhouse/README.md     install guide and production notes (Portuguese)
+docs/ARQUITETURA.md     full manual: flow, models, screens, recipes, traps (Portuguese)
+docs/arquitetura/       diagrams (UML, BPMN, C4)
+maryhouse/              the Django project
+  config/               settings, root urls, wsgi
+  core/                 models, forms, views, urls, admin, templatetags,
+                        seed_demo, migrations, static/ (CSS + Chart.js), templates/, tests.py
+```
+
+## What I learned
+
+- **One list template for three entities.** Clients, providers and services share the same list and form templates; the view declares the columns and a template tag formats them. Bookings got their own template because forcing the generic one would have turned a tag into an expression interpreter.
+- **A view factory instead of twelve classes.** `_make_views()` builds Create, Update and Delete for each entity, which kept `views.py` around 400 lines.
+- **Audit in the view, not in a signal.** The request is the only place that knows who did it from the screen. The trade-off is that edits through `/admin/` are not logged.
+- **`PROTECT` on booking foreign keys.** Deleting a client cannot take its history with it. The `ativo` flag hides records without losing the past.
+- **Development defaults are a risk.** `settings.py` falls back to an embedded secret key, `DEBUG=True` and `ALLOWED_HOSTS=*` when no `.env` exists. A safer version (secure defaults, key required outside development) is in branch `revisao-2026-11`.
+
+## License
+
+All rights reserved. Code written for a client; published as portfolio.
