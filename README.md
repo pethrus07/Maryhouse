@@ -64,4 +64,4 @@ maryhouse/              the Django project
 
 ## License
 
-All rights reserved. Code written for a client; published as portfolio.
+All rights reserved. Published as portfolio; not licensed for reuse. See [LICENSE](LICENSE).

@@ -64,4 +64,4 @@ maryhouse/              o projeto Django
 
 ## Licença
 
-Todos os direitos reservados. Código feito para um cliente; publicado como portfólio.
+Todos os direitos reservados. Publicado como portfólio; não licenciado para reuso. Veja o arquivo [LICENSE](LICENSE).
