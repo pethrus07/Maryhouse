@@ -26,12 +26,13 @@ From inside `maryhouse/`:
 python -m venv .venv
 .venv\Scripts\activate            # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env              # DEBUG=True for development
 python manage.py migrate
 python manage.py seed_demo        # demo user admin / admin123 and fictitious data
 python manage.py runserver        # http://127.0.0.1:8000
 ```
 
-Without a `.env` the system starts in development mode on SQLite. `seed_demo` creates a weak demo password and must never run in production. Environment variables are listed in `maryhouse/.env.example`.
+Without a `.env` the system assumes production: DEBUG off, localhost only, and it refuses to start without `SECRET_KEY`. The `.env.example` turns on development mode on SQLite. `seed_demo` creates a weak demo password and must never run in production. Environment variables are listed in `maryhouse/.env.example`.
 
 ## Tests
 
@@ -40,7 +41,7 @@ cd maryhouse
 python manage.py test
 ```
 
-`core/tests.py` is a smoke test: the login page opens, every screen and export redirects to login when anonymous, and with the demo data every screen opens, exports come out as CSV and deleting a client writes to the activity log.
+`core/tests.py` is a smoke test: the login page opens, every screen and export redirects to login when anonymous, and with the demo data every screen opens, exports come out as CSV and deleting a client writes to the activity log. It also checks that deleting a client with bookings shows a message instead of a 500 error, and runs `settings.py` in a separate process to check the secure defaults.
 
 ## Folder structure
 
@@ -60,7 +61,7 @@ maryhouse/              the Django project
 - **A view factory instead of twelve classes.** `_make_views()` builds Create, Update and Delete for each entity, which kept `views.py` around 400 lines.
 - **Audit in the view, not in a signal.** The request is the only place that knows who did it from the screen. The trade-off is that edits through `/admin/` are not logged.
 - **`PROTECT` on booking foreign keys.** Deleting a client cannot take its history with it. The `ativo` flag hides records without losing the past.
-- **Development defaults are a risk.** `settings.py` falls back to an embedded secret key, `DEBUG=True` and `ALLOWED_HOSTS=*` when no `.env` exists. A safer version (secure defaults, key required outside development) is in branch `revisao-2026-11`.
+- **Development defaults are a risk.** `settings.py` used to fall back to an embedded secret key, `DEBUG=True` and `ALLOWED_HOSTS=*` when no `.env` existed. Since 2026-11 the defaults are secure and the embedded key only works with `DEBUG=True`.
 
 ## License
 

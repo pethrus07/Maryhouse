@@ -26,12 +26,13 @@ De dentro de `maryhouse/`:
 python -m venv .venv
 .venv\Scripts\activate            # Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
+cp .env.example .env              # DEBUG=True para desenvolvimento
 python manage.py migrate
 python manage.py seed_demo        # usuário de demonstração admin / admin123 e dados fictícios
 python manage.py runserver        # http://127.0.0.1:8000
 ```
 
-Sem `.env`, o sistema sobe em modo de desenvolvimento com SQLite. O `seed_demo` cria uma senha fraca de demonstração e nunca deve rodar em produção. As variáveis de ambiente estão em `maryhouse/.env.example`.
+Sem `.env`, o sistema assume produção: DEBUG desligado, só localhost, e não sobe sem `SECRET_KEY`. O `.env.example` liga o modo de desenvolvimento com SQLite. O `seed_demo` cria uma senha fraca de demonstração e nunca deve rodar em produção. As variáveis de ambiente estão em `maryhouse/.env.example`.
 
 ## Testes
 
@@ -40,7 +41,7 @@ cd maryhouse
 python manage.py test
 ```
 
-O `core/tests.py` é um teste de fumaça: a tela de login abre, toda tela e exportação manda para o login quando não há sessão, e com os dados de demonstração toda tela abre, as exportações saem em CSV e remover um contratante grava no histórico.
+O `core/tests.py` é um teste de fumaça: a tela de login abre, toda tela e exportação manda para o login quando não há sessão, e com os dados de demonstração toda tela abre, as exportações saem em CSV e remover um contratante grava no histórico. Confere também que remover contratante com agendamento mostra mensagem em vez de erro 500, e sobe o `settings.py` num processo à parte para conferir os defaults seguros.
 
 ## Estrutura de pastas
 
@@ -60,7 +61,7 @@ maryhouse/              o projeto Django
 - **Uma fábrica de views em vez de doze classes.** `_make_views()` gera criar, editar e remover para cada entidade, e o `views.py` ficou em torno de 400 linhas.
 - **Auditoria na view, não em signal.** O request é o único lugar que sabe quem fez pela tela. O preço: edição pelo `/admin/` não entra no histórico.
 - **`PROTECT` nas chaves do agendamento.** Apagar um contratante não pode levar o histórico junto. O campo `ativo` esconde o registro sem perder o passado.
-- **Default de desenvolvimento é risco.** O `settings.py` cai numa chave embutida, `DEBUG=True` e `ALLOWED_HOSTS=*` quando não há `.env`. Uma versão mais segura (defaults seguros, chave obrigatória fora do desenvolvimento) está no branch `revisao-2026-11`.
+- **Default de desenvolvimento é risco.** O `settings.py` caía numa chave embutida, `DEBUG=True` e `ALLOWED_HOSTS=*` quando não havia `.env`. Desde 2026-11 os defaults são seguros e a chave embutida só vale com `DEBUG=True`.
 
 ## Licença
 
