@@ -1,16 +1,26 @@
-Português | [English](README.md)
+# Maryhouse
 
-# Sistema de agendamentos para uma agência de faxina
-
-> **Arquivado (2026-11).** A conversa comercial terminou em setembro de 2026. Não há deploy configurado neste repositório.
+[English](README.md) · Português
 
 Sistema interno de uma pequena agência de serviços domésticos em João Pessoa. Registra contratantes, prestadoras e o catálogo de serviços, e amarra os três num agendamento com data, hora, status e valor. Painel, relatórios, exportação CSV e histórico de atividade, tudo atrás de login.
 
-## O que foi
+## Status
+
+Arquivado (novembro de 2026). A conversa comercial terminou em setembro de 2026. Não há deploy configurado neste repositório.
+
+## O que faz
 
 A operação da agência se resume a quatro perguntas: quem pediu, quem vai, que dia, quanto custa. Quando isso vive em caderno e conversa de WhatsApp, a resposta muda conforme quem responde e o histórico não existe. O sistema responde as quatro num lugar só. Não é ERP: não emite nota, não controla caixa, não tem área do cliente nem API pública. Só a equipe interna usa.
 
 Foi reescrito em Django em 2026. Uma proposta seguinte (site novo e o sistema migrado para Cloudflare Workers) não foi adiante.
+
+## O que ficou de aprendizado
+
+- **Um template de lista para três entidades.** Contratantes, prestadoras e serviços usam o mesmo template de lista e de formulário; a view declara as colunas e uma template tag formata. Agendamentos ganharam template próprio, porque forçar o genérico viraria um interpretador de expressões dentro de uma tag.
+- **Uma fábrica de views em vez de doze classes.** `_make_views()` gera criar, editar e remover para cada entidade, e o `views.py` ficou em torno de 400 linhas.
+- **Auditoria na view, não em signal.** O request é o único lugar que sabe quem fez pela tela. O preço: edição pelo `/admin/` não entra no histórico.
+- **`PROTECT` nas chaves do agendamento.** Apagar um contratante não pode levar o histórico junto. O campo `ativo` esconde o registro sem perder o passado.
+- **Default de desenvolvimento é risco.** O `settings.py` cai numa chave embutida, `DEBUG=True` e `ALLOWED_HOSTS=*` quando não há `.env`. Uma versão mais segura (defaults seguros, chave obrigatória fora do desenvolvimento) está no branch `revisao-2026-11`.
 
 ## Stack
 
@@ -42,7 +52,7 @@ python manage.py test
 
 O `core/tests.py` é um teste de fumaça: a tela de login abre, toda tela e exportação manda para o login quando não há sessão, e com os dados de demonstração toda tela abre, as exportações saem em CSV e remover um contratante grava no histórico.
 
-## Estrutura de pastas
+## Pastas
 
 ```
 maryhouse/README.md     guia de instalação e notas de produção
@@ -54,13 +64,9 @@ maryhouse/              o projeto Django
                         seed_demo, migrations, static/ (CSS + Chart.js), templates/, tests.py
 ```
 
-## O que ficou de aprendizado
+## Arquitetura
 
-- **Um template de lista para três entidades.** Contratantes, prestadoras e serviços usam o mesmo template de lista e de formulário; a view declara as colunas e uma template tag formata. Agendamentos ganharam template próprio, porque forçar o genérico viraria um interpretador de expressões dentro de uma tag.
-- **Uma fábrica de views em vez de doze classes.** `_make_views()` gera criar, editar e remover para cada entidade, e o `views.py` ficou em torno de 400 linhas.
-- **Auditoria na view, não em signal.** O request é o único lugar que sabe quem fez pela tela. O preço: edição pelo `/admin/` não entra no histórico.
-- **`PROTECT` nas chaves do agendamento.** Apagar um contratante não pode levar o histórico junto. O campo `ativo` esconde o registro sem perder o passado.
-- **Default de desenvolvimento é risco.** O `settings.py` cai numa chave embutida, `DEBUG=True` e `ALLOWED_HOSTS=*` quando não há `.env`. Uma versão mais segura (defaults seguros, chave obrigatória fora do desenvolvimento) está no branch `revisao-2026-11`.
+Comece pela [docs/ARQUITETURA.md](docs/ARQUITETURA.md): fluxo, modelos, telas, receitas, armadilhas. Diagramas (UML, BPMN, C4) em [docs/arquitetura/](docs/arquitetura/).
 
 ## Licença
 
