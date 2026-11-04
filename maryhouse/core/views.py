@@ -15,8 +15,9 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q, Sum
+from django.db.models import Count, ProtectedError, Q, Sum
 from django.http import HttpResponse
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import (
@@ -340,9 +341,22 @@ def _make_views(model, form, label, secao, list_url, create_url, update_url):
         success_url = reverse_lazy(list_url)
 
         def form_valid(self, response):
-            self._log(LogAtividade.Acao.REMOVEU, self.get_object())
+            # PROTECT nas chaves do agendamento: quem tem agendamento não sai do banco.
+            # Sem este try, o ProtectedError virava erro 500. O log só é gravado se a
+            # remoção aconteceu de fato.
+            obj = self.get_object()
+            try:
+                resposta = super().form_valid(response)
+            except ProtectedError:
+                messages.error(
+                    self.request,
+                    f"{label} tem agendamentos ligados e não pode ser removido(a). "
+                    "Marque como inativo(a) para tirar da lista sem perder o histórico.",
+                )
+                return redirect(list_url)
+            self._log(LogAtividade.Acao.REMOVEU, obj)
             messages.success(self.request, f"{label} removido(a).")
-            return super().form_valid(response)
+            return resposta
 
         def get_context_data(self, **kwargs):
             ctx = super().get_context_data(**kwargs)

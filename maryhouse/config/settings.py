@@ -8,11 +8,14 @@ Banco de dados: usa PostgreSQL quando DATABASE_URL está definida; sem ela, cai 
 SQLite local (db.sqlite3). O fallback existe para que clonar o repositório e rodar não
 exija subir servidor de banco nenhum — em produção, DATABASE_URL é obrigatória na prática.
 
-ATENÇÃO: os defaults daqui (SECRET_KEY embutida, DEBUG=True, ALLOWED_HOSTS=*) são de
-conveniência de desenvolvimento e viram risco se o .env de produção não os sobrescrever.
+Defaults seguros: sem .env o sistema sobe com DEBUG desligado, só para localhost, e
+RECUSA subir sem SECRET_KEY. Para desenvolver, ponha DEBUG=True no .env (ver .env.example):
+só aí a chave de desenvolvimento embutida passa a valer.
 """
 from pathlib import Path
 import os
+
+from django.core.exceptions import ImproperlyConfigured
 
 import dj_database_url
 
@@ -34,15 +37,29 @@ def env(key, default=None):
 
 
 # --- Segurança -------------------------------------------------------------
-SECRET_KEY = env(
-    "SECRET_KEY",
-    "dev-inseguro-troque-em-producao-0123456789abcdefghijklmnop",
-)
-DEBUG = env("DEBUG", "True").lower() in ("1", "true", "yes", "on")
-ALLOWED_HOSTS = [h.strip() for h in env("ALLOWED_HOSTS", "*").split(",") if h.strip()]
+DEBUG = env("DEBUG", "False").lower() in ("1", "true", "yes", "on")
+
+SECRET_KEY = env("SECRET_KEY", "")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured(
+            "SECRET_KEY não definida. Em produção ela é obrigatória; para desenvolver, "
+            "use DEBUG=True no .env."
+        )
+    SECRET_KEY = "dev-inseguro-so-com-debug-0123456789abcdefghijklmnopqrstuv"
+
+ALLOWED_HOSTS = [
+    h.strip() for h in (env("ALLOWED_HOSTS") or "localhost,127.0.0.1").split(",") if h.strip()
+]
 CSRF_TRUSTED_ORIGINS = [
     o.strip() for o in env("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()
 ]
+
+# Fora do desenvolvimento, cookie de sessão e de CSRF só por HTTPS. HSTS e redirecionamento
+# para HTTPS ficam para o servidor web, que é quem sabe se há TLS na frente.
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 # --- Aplicações ------------------------------------------------------------
 INSTALLED_APPS = [
